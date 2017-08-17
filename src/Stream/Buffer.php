@@ -46,7 +46,7 @@ final class Buffer implements StreamWrapper
 
     public function stream_eof()
     {
-        return $this->position >= strlen($this->stream);
+        return $this->position >= mb_strlen($this->stream);
     }
 
     public function stream_tell()
@@ -62,10 +62,10 @@ final class Buffer implements StreamWrapper
             return false;
         }
 
-        $left = substr($this->stream, 0, $this->position);
+        $left = mb_substr($this->stream, 0, $this->position);
 
         $this->stream = "{$left}{$data}";
-        $this->position += $bytesWritten = strlen($data);
+        $this->position += $bytesWritten = mb_strlen($data);
 
         return $bytesWritten;
     }
@@ -78,13 +78,13 @@ final class Buffer implements StreamWrapper
             return false;
         }
 
-        $data = substr($this->stream, $this->position, $count);
+        $data = mb_substr($this->stream, $this->position, $count);
 
         if (false === $data) {
             return false;
         }
 
-        $this->position += strlen($data);
+        $this->position += mb_strlen($data);
 
         return $data;
     }
@@ -95,7 +95,7 @@ final class Buffer implements StreamWrapper
 
         if (in_array($whence, $values)) {
             if (SEEK_END === $whence) {
-                $offset = strlen($this->stream) + $offset;
+                $offset = mb_strlen($this->stream) + $offset;
             }
 
             if ($offset >= 0) {
@@ -114,7 +114,7 @@ final class Buffer implements StreamWrapper
 
     public function stream_truncate($new_size)
     {
-        $currentLength = strlen($this->stream);
+        $currentLength = mb_strlen($this->stream);
 
         if ($new_size > $currentLength) {
             $multiplier = $new_size - $currentLength;
