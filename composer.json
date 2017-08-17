@@ -1,7 +1,7 @@
 {
   "name": "alexmasterov/fake-socket",
   "type": "library",
-  "description": "Fake socket for testing",
+  "description": "A collection of fake sockets and streams for testing",
   "keywords": ["socket", "stream", "fake", "test"],
   "homepage": "https://github.com/AlexMasterov/fake-socket",
   "license": "MIT",
