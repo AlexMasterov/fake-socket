@@ -27,7 +27,7 @@ final class BufferTest extends TestCase
     }
 
     /** @test */
-    public function it_writes_in_stream_correctly()
+    public function it_writes_into_stream_correctly()
     {
         // Stub
         $data = 'xyz';
@@ -125,6 +125,31 @@ final class BufferTest extends TestCase
 
         // Verify
         self::assertTrue($result);
+    }
+
+    /** @test */
+    public function it_can_only_write_n_times()
+    {
+        // Stub
+        $data = 'xyz';
+
+        $url = StreamFactory::make('buffer')
+            ->withWrite(1)
+            ->register();
+
+        $stream = fopen($url, 'r+', false);
+
+        // Execute
+        $bytesWritten = fwrite($stream, $data);
+
+        // Verify
+        self::assertSame(strlen($data), $bytesWritten);
+
+        // Execute
+        $bytesWritten = fwrite($stream, $data);
+
+        // Verify
+        self::assertSame(0, $bytesWritten);
     }
 
     private function getDataFromStream(/** resource */ $stream): array

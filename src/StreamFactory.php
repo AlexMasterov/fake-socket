@@ -34,10 +34,22 @@ final class StreamFactory
     private $port;
 
     /** @var int */
-    private $readLimit;
+    private $read;
 
     /** @var int */
-    private $writeLimit;
+    private $readAfter;
+
+    /** @var int */
+    private $readEvery;
+
+    /** @var int */
+    private $write;
+
+    /** @var int */
+    private $writeAfter;
+
+    /** @var int */
+    private $writeEvery;
 
     public static function make(string $dataSourceName): self
     {
@@ -84,8 +96,12 @@ final class StreamFactory
         }
 
         $query = [
-            'read_limit' => $this->readLimit,
-            'write_limit' => $this->writeLimit,
+            'read'        => $this->read,
+            'read_after'  => $this->readAfter,
+            'read_every'  => $this->readEvery,
+            'write'       => $this->write,
+            'write_after' => $this->writeAfter,
+            'write_every' => $this->writeEvery,
         ];
 
         $query = http_build_query($query);
@@ -118,21 +134,41 @@ final class StreamFactory
 
     public function withRead(int $limit = -1): self
     {
-        return $this->copy('readLimit', $limit);
+        return $this->copy('read', $limit);
     }
 
     public function withWrite(int $limit = -1): self
     {
-        return $this->copy('readLimit', $limit);
+        return $this->copy('write', $limit);
     }
 
     public function withoutRead(): self
     {
-        return $this->copy('readLimit', 0);
+        return $this->copy('read', 0);
     }
 
     public function withoutWrite(): self
     {
-        return $this->copy('writeLimit', 0);
+        return $this->copy('write', 0);
+    }
+
+    public function withReadAfter(int $limit = 0): self
+    {
+        return $this->copy('readAfter', $limit);
+    }
+
+    public function withWriteAfter(int $limit = 0): self
+    {
+        return $this->copy('writeAfter', $limit);
+    }
+
+    public function withReadEvery(int $limit = 1): self
+    {
+        return $this->copy('readEvery', $limit);
+    }
+
+    public function withWriteEvery(int $limit = 1): self
+    {
+        return $this->copy('writeEvery', $limit);
     }
 }

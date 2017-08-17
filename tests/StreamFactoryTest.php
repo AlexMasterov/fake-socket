@@ -47,8 +47,12 @@ final class StreamFactoryTest extends TestCase
         $host = 'buffer';
         $port = 9200;
         $query = [
-            'read_limit' => 0,
-            'write_limit' => 0,
+            'read'        => 10,
+            'read_after'  => 1,
+            'read_every'  => 2,
+            'write'       => 10,
+            'write_after' => 1,
+            'write_every' => 2,
         ];
 
         // Execute
@@ -56,8 +60,12 @@ final class StreamFactoryTest extends TestCase
             ->withProtocol($protocol)
             ->withHost($host)
             ->withPort($port)
-            ->withoutRead()
-            ->withoutWrite()
+            ->withRead(10)
+            ->withReadAfter(1)
+            ->withReadEvery(2)
+            ->withWrite(10)
+            ->withWriteAfter(1)
+            ->withWriteEvery(2)
             ->register();
 
         // Verify

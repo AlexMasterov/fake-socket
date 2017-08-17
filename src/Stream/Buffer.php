@@ -21,8 +21,12 @@ final class Buffer implements StreamWrapper
 
     /** @var array */
     private $limits = [
-        'read' => -1,
-        'write' => -1,
+        'read'        => -1,
+        'read_after'  => 0,
+        'read_every'  => 1,
+        'write'       => -1,
+        'write_after' => 0,
+        'write_every' => 1,
     ];
 
     public function stream_open($path, $mode, $options, &$opened_path)
@@ -35,8 +39,7 @@ final class Buffer implements StreamWrapper
             parse_str($components['query'], $query);
         }
 
-        $this->limits['read'] = (int) ($query['read_limit'] ?? -1);
-        $this->limits['write'] = (int) ($query['write_limit'] ?? -1);
+        $this->configureLimits($query);
 
         return true;
     }
@@ -53,6 +56,8 @@ final class Buffer implements StreamWrapper
 
     public function stream_write($data)
     {
+        ++$this->writeCount;
+
         if (!$this->canWrite()) {
             return false;
         }
@@ -62,13 +67,13 @@ final class Buffer implements StreamWrapper
         $this->stream = "{$left}{$data}";
         $this->position += $bytesWritten = strlen($data);
 
-        ++$this->writeCount;
-
         return $bytesWritten;
     }
 
     public function stream_read($count)
     {
+        ++$this->readCount;
+
         if (!$this->canRead()) {
             return false;
         }
@@ -80,8 +85,6 @@ final class Buffer implements StreamWrapper
         }
 
         $this->position += strlen($data);
-
-        ++$this->readCount;
 
         return $data;
     }
@@ -130,13 +133,36 @@ final class Buffer implements StreamWrapper
         return true;
     }
 
+    private function configureLimits(array $query): void
+    {
+        foreach (array_keys($this->limits) as $limit) {
+            if (!isset($query[$limit])) {
+                continue;
+            }
+
+            if (false !== strrpos($limit, 'every')) {
+                $query[$limit] = max(1, (int) $query[$limit]);
+            }
+
+            $this->limits[$limit] = (int) $query[$limit];
+        }
+    }
+
     private function canRead(): bool
     {
-        return $this->readCount >= $this->limits['read'];
+        $noLimit = $this->readCount !== $this->limits['read'] + 1;
+
+        return $noLimit
+            && $this->readCount > $this->limits['read_after']
+            && $this->readCount % $this->limits['read_every'] === 0;
     }
 
     private function canWrite(): bool
     {
-        return $this->writeCount >= $this->limits['write'];
+        $noLimit = $this->writeCount !== $this->limits['write'] + 1;
+
+        return $noLimit
+            && $this->writeCount > $this->limits['write_after']
+            && $this->writeCount % $this->limits['write_every'] === 0;
     }
 }
