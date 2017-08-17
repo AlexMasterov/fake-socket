@@ -56,7 +56,7 @@ final class StreamFactoryTest extends TestCase
         ];
 
         // Execute
-        $url = StreamFactory::make('buffer')
+        $url = StreamFactory::make("{$host}:{$port}")
             ->withProtocol($protocol)
             ->withHost($host)
             ->withPort($port)

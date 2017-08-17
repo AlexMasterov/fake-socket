@@ -4,10 +4,13 @@ declare(strict_types=1);
 namespace FakeSocket\Tests\Stream;
 
 use FakeSocket\StreamFactory;
+use FakeSocket\Tests\Stream\CanExtractWrapperStream;
 use PHPUnit\Framework\TestCase;
 
 final class BufferTest extends TestCase
 {
+    use CanExtractWrapperStream;
+
     /** @test */
     public function it_is_created_with_initial_values_correctly()
     {
@@ -64,6 +67,27 @@ final class BufferTest extends TestCase
 
         // Verify
         self::assertSame($data, $result);
+    }
+
+    /** @test */
+    public function it_read_eof_from_stream_correctly()
+    {
+        // Stub
+        $data = 'xyz';
+
+        $url = StreamFactory::make('buffer')
+            ->register();
+
+        // Execute
+        $stream = fopen($url, 'r+', false);
+
+        fwrite($stream, $data);
+        fseek($stream, 10, SEEK_END);
+
+        $result = fread($stream, strlen($data));
+
+        // Verify
+        self::assertEmpty($result);
     }
 
     /** @test */
@@ -152,21 +176,62 @@ final class BufferTest extends TestCase
         self::assertSame(0, $bytesWritten);
     }
 
-    private function getDataFromStream(/** resource */ $stream): array
+    /** @test */
+    public function it_can_only_read_n_times()
     {
-        ['wrapper_data' => $wrapperData] = stream_get_meta_data($stream);
+        // Stub
+        $data = 'xyz';
 
-        $getData = function () {
-            return get_object_vars($this);
-        };
+        $url = StreamFactory::make('buffer')
+            ->withRead(1)
+            ->register();
 
-        return $getData->call($wrapperData);
+        $stream = fopen($url, 'r+', false);
+
+        // Execute
+        fwrite($stream, $data);
+        rewind($stream);
+
+        $result = stream_get_contents($stream);
+
+        // Verify
+        self::assertSame($data, $result);
+
+        // Execute
+        $result = stream_get_contents($stream);
+
+        // Verify
+        self::assertEmpty($result);
     }
 
-    private function getStreamBuffer(/** resource */ $stream): string
+    /** @test */
+    public function it_can_only_write_every_n_times()
     {
-        ['stream' => $stream] = $this->getDataFromStream($stream);
+        // Stub
+        $data = 'xyz';
 
-        return $stream;
+        $url = StreamFactory::make('buffer')
+            ->withWriteEvery(2)
+            ->register();
+
+        $stream = fopen($url, 'r+', false);
+
+        // Execute
+        $bytesWritten = fwrite($stream, $data);
+
+        // Verify
+        self::assertSame(0, $bytesWritten);
+
+        // Execute
+        $bytesWritten = fwrite($stream, $data);
+
+        // Verify
+        self::assertSame(strlen($data), $bytesWritten);
+
+        // Execute
+        $bytesWritten = fwrite($stream, $data);
+
+        // Verify
+        self::assertSame(0, $bytesWritten);
     }
 }
