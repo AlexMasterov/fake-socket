@@ -80,11 +80,9 @@ final class Buffer implements StreamWrapper
 
         $data = substr($this->stream, $this->position, $count);
 
-        if (false === $data) {
-            return false;
+        if ($data) {
+            $this->position += strlen($data);
         }
-
-        $this->position += strlen($data);
 
         return $data;
     }
